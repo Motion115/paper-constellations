@@ -1,11 +1,12 @@
 import { Flex, Select, Typography } from "antd";
 import { ContentLookupSpec } from "../types";
+import { useEffect, useState } from "react";
 
 const { Text } = Typography;
 
 interface SearchBarProps {
   data: ContentLookupSpec;
-  defaultSearch: string;
+  searchId: string;
   setSearchId: React.Dispatch<React.SetStateAction<string>>;
 }
 
@@ -16,7 +17,7 @@ interface SelectOption {
 
 const SearchBar: React.FC<SearchBarProps> = ({
   data,
-  defaultSearch,
+  searchId,
   setSearchId,
 }) => {
   const searchList: SelectOption[] = Object.entries(data).map(
@@ -25,6 +26,13 @@ const SearchBar: React.FC<SearchBarProps> = ({
       label: content.title,
     })
   );
+  const [defaultValue, setDefaultValue] = useState<string>(
+    data[searchId].title
+  );
+  useEffect(() => {
+    setDefaultValue(data[searchId].title || "")
+  }, [searchId])
+
 
   const onChange = (value: string) => {
     setSearchId(value);
@@ -49,7 +57,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         }
         style={{ width: "100%", height: "3rem" }}
         options={searchList}
-        defaultValue={defaultSearch}
+        value={defaultValue}
       />
     </Flex>
   );

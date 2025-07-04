@@ -241,7 +241,7 @@ const CircularSOM: React.FC<CircularSOMProps> = ({
             <Flex justify="space-between">
               <ZoomInOutlined />
               <Slider
-                min={0}
+                min={50}
                 max={coordinateData.length}
                 value={topK}
                 step={50}

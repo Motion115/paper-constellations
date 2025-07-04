@@ -23,6 +23,7 @@ import SearchBar from "./components/SearchBar";
 import DimReduction from "./components/DimReduction";
 import PaperContent from "./components/PaperContent";
 import { CSSPageConfig } from "./style/styleConfigs";
+import { useWindowSize } from "usehooks-ts";
 
 const { Paragraph, Text, Link } = Typography;
 
@@ -69,26 +70,12 @@ const Dashboard: React.FC = () => {
   });
 
   const fullWindowRef = useRef<HTMLDivElement>(null);
-  const [fullWindowDim, setFullWindowDim] = useState<{
+  const fullWindowDim = useWindowSize();
+
+  useState<{
     width: number;
     height: number;
   } | null>(null);
-
-  useEffect(() => {
-    if (!fullWindowRef.current) return;
-
-    const updateWindowDimensions = () => {
-      if (!fullWindowRef.current) return;
-      const { width, height } = fullWindowRef.current.getBoundingClientRect();
-      setFullWindowDim({ width, height });
-    };
-    updateWindowDimensions();
-    const resizeObserver = new ResizeObserver(updateWindowDimensions);
-    resizeObserver.observe(fullWindowRef.current);
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [fullWindowRef.current]);
 
   const somRef = useRef<HTMLDivElement>(null);
   // get the height of the somRef
@@ -160,68 +147,6 @@ const Dashboard: React.FC = () => {
 
   const CircularView = (
     <>
-      {/* {embedding && contentLookup && (
-          <div style={{ width: "70%", height: "60vh", maxHeight: "100%" }}>
-            <DimReduction data={embedding} contentLookup={contentLookup} />
-          </div>
-        )} */}
-      <Text>
-        <ul>
-          <li>
-            <b>Panels</b>: The leftmost panel is the{" "}
-            <Link href="https://github.com/RyanQ96/VADIS" target="_blank">
-              Circular SOM visualization
-            </Link>{" "}
-            (Circular Self-Organizing Map) with the <b>anchor paper</b> you
-            selected, with details of the anchor paper displayed on the{" "}
-            <b>anchor paper card</b> adjacent to the Circular SOM visualization.
-            The rightmost panel (hidden by default) is the{" "}
-            <b>relevant paper card</b>, which can be triggered by clicking the
-            dots on Circular SOM. The in situ author visualization is powered by{" "}
-            <Link href="https://github.com/motion115/GistVis/" target="_blank">
-              GistVis (@gistvis/wsv)
-            </Link>
-            . Embedding and relevance are calculated using the{" "}
-            <Link
-              href="https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2"
-              target="_blank"
-            >
-              SentenceBERT
-            </Link>{" "}
-            model.
-          </li>
-          <li>
-            <b>Reading Circular SOM</b>: The "relevance" of paper decay on the
-            radius, which is also double encoded by the opacity of each dot.
-            Similar papers are visualized in proximity to each other, with the
-            colors indicating a potential cluster (8 clusters from k-Means).
-          </li>
-          <li>
-            <b>Reading Author Visualization</b>: The bar chart shows how many
-            papers each author published in CHI'25 (e.g., this can indicate who
-            might be the senior researchers of the paper). You can hover over
-            the authors or the bar chart and interactively observe the author's
-            record.
-          </li>
-          <li>
-            <b>Controls</b>: Use the <b>drop-down</b> menu to search for and
-            select anchor paper. After selecting the anchor paper, the Circular
-            SOM is dynamically loaded, with the center representing the anchor
-            paper. Drag the <b>slider</b> to zoom in or out.{" "}
-            <b>Tooltip on the slider</b> shows how many paper is currently
-            visualized in the panel (50 paper intervals). <b>Hover</b> on each
-            dot to see the paper title, and <b>click</b> to load detailed
-            information on <b>relevant paper card</b>.
-          </li>
-        </ul>
-      </Text>
-      {contentLookup && (
-        <SearchBar
-          data={contentLookup}
-          setSearchId={setSearchId}
-          defaultSearch={contentLookup[searchId]?.title || ""}
-        />
-      )}
       {relationshipLookup &&
         contentLookup &&
         authorLookup &&
@@ -229,9 +154,8 @@ const Dashboard: React.FC = () => {
           <Flex gap="large" wrap={fullWindowDim.width < WRAP_THRESHOLD}>
             <div
               style={{
-                width: fullWindowDim.width < WRAP_THRESHOLD ? "100%" : "30%",
+                width: fullWindowDim.width < WRAP_THRESHOLD ? "100%" : "25%",
                 maxHeight: "60vh",
-                height: "60vh",
                 justifyContent: "center",
                 alignItems: "center",
               }}
@@ -284,7 +208,7 @@ const Dashboard: React.FC = () => {
                 height: "60vh",
               }}
             >
-              <Card title="Anchor Paper">
+              <Card title="Star Paper" style={{ backgroundColor: "#f0f0f0" }}>
                 <PaperContent
                   paperId={searchId}
                   contentLookup={contentLookup}
@@ -301,7 +225,7 @@ const Dashboard: React.FC = () => {
                 height: "60vh",
               }}
             >
-              <Card title="Relevant Paper">
+              <Card title="Companion Star Paper">
                 {selectedId !== "" ? (
                   <PaperContent
                     paperId={selectedId}
@@ -325,96 +249,54 @@ const Dashboard: React.FC = () => {
 
   const ScatterView = (
     <>
-      <Text>
-        <ul>
-          <li>
-            <b>Panels</b>: The left panel is a <b>scatter plot</b> that projects
-            the embedding from{" "}
-            <Link
-              href="https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2"
-              target="_blank"
-            >
-              SentenceBERT
-            </Link>{" "}
-            using title + abstract information. The right panel is the{" "}
-            <b>paper card</b>, where you can view detailed information about the
-            paper.
-          </li>
-          <li>
-            <b>Reading Scatter Plot</b>: Similar papers are visualized in
-            proximity, with the colors indicating a potential cluster (8
-            clusters from k-Means).
-          </li>
-          <li>
-            <b>Controls</b>: <b>Hover</b> on each dot to see the paper title and{" "}
-            <b>click</b> to load detailed information on the <b>paper card</b>.
-            You can also <b>switch</b> between two different dimensionality
-            reduction algorithms: UMAP and t-SNE. The <b>award switch</b>{" "}
-            highlights the best paper / honorable mention winners.
-          </li>
-        </ul>
-      </Text>
-      <Flex gap="large" wrap>
+      <Space direction="vertical" style={{ width: "100%" }}>
+        <Text style={{ fontWeight: "bold", fontSize: "18px" }}>
+          Constellations
+        </Text>
         {embedding && contentLookup && fullWindowDim !== null && (
           <div
             style={{
-              width: fullWindowDim.width < WRAP_THRESHOLD ? "100%" : "60%",
-              height: "60vh",
+              width: fullWindowDim.width > WRAP_THRESHOLD ? "100%" : "100%",
+              height: "40vh",
               maxHeight: "100%",
             }}
           >
             <DimReduction
               data={embedding}
               contentLookup={contentLookup}
-              setClicked={setSelectedScatterId}
+              searchId={searchId}
+              setClicked={setSearchId}
               trigger={displayPortDim.width}
             />
           </div>
         )}
-        {fullWindowDim !== null && (
-          <div
-            style={{
-              width: fullWindowDim.width < WRAP_THRESHOLD ? "100%" : "30%",
-              overflowY: "scroll",
-              height: "60vh",
-            }}
-          >
-            <Card title="Selected Paper">
-              {relationshipLookup &&
-              contentLookup &&
-              authorLookup &&
-              selectedScatterId !== "" ? (
-                <PaperContent
-                  paperId={selectedScatterId}
-                  contentLookup={contentLookup}
-                  authorLookup={authorLookup}
-                  trigger={displayPortDim.width}
-                />
-              ) : (
-                <Alert
-                  message="Select a paper from the visualization to view its details here"
-                  type="info"
-                  showIcon
-                />
-              )}
-            </Card>
-          </div>
-        )}
-      </Flex>
+      </Space>
     </>
+  );
+
+  const searchBar = contentLookup && (
+    <SearchBar
+      data={contentLookup}
+      searchId={searchId}
+      setSearchId={setSearchId}
+    />
   );
 
   return (
     <div ref={fullWindowRef}>
       <Space direction="vertical" style={CSSPageConfig}>
-        <Tabs items={TabItems} onChange={onChangeView} activeKey={view} />
+        {searchBar}
+        {ScatterView}
+        {CircularView}
+
+        {/* <Tabs items={TabItems} onChange={onChangeView} activeKey={view} />
         {view === "circular" ? (
           CircularView
         ) : view === "scatter" ? (
           ScatterView
         ) : (
           <div>View does not exist</div>
-        )}
+        )} */}
       </Space>
     </div>
   );

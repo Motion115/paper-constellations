@@ -14,9 +14,9 @@ const THEME = {
   components: {
     Layout: {
       headerBg: "#ffffff",
-      headerPadding: "50px 0px 50px 0px",
-      headerHeight: 35,
-      footerPadding: "50px 0px 50px 0px",
+      headerPadding: "10px 0px 10px 0px",
+      headerHeight: 25,
+      footerPadding: "10px 0px 10px 0px",
     },
     Menu: {
       itemBorderRadius: 12,

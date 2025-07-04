@@ -14,13 +14,13 @@ const App: React.FC = () => {
       <ConfigProvider theme={THEME}>
         <div>
           <Header style={{ padding: "0% 2% 0% 2%" }}>
-            <Title level={3}>CHI 2025 Papers Explorer</Title>
+            <Title level={3}>Paper Constellations</Title>
           </Header>
           <Content style={CSSPageConfig}>
             <Dashboard />
           </Content>
           <Footer style={CSSPageConfig}>
-            <Paragraph type="secondary">
+            {/* <Paragraph type="secondary">
               Made with ❤️ by{" "}
               <Link href="https://motion115.github.io" target="_blank">
                 Ruishi (Ray) Zou
@@ -69,7 +69,7 @@ const App: React.FC = () => {
                 GitHub repo
               </Link>
               .
-            </Paragraph>
+            </Paragraph> */}
           </Footer>
         </div>
       </ConfigProvider>
