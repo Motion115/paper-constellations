@@ -16,7 +16,9 @@ interface DimReductionProps {
   data: EmbeddingSpec[];
   contentLookup: ContentLookupSpec;
   searchId: string;
+  selectedId: string;
   setClicked: (id: string) => void;
+  colorScale: d3.ScaleOrdinal<string, string, never>;
   trigger?: any;
 }
 
@@ -28,7 +30,9 @@ const DimReduction: React.FC<DimReductionProps> = ({
   data,
   contentLookup,
   searchId,
+  selectedId,
   setClicked,
+  colorScale,
 }) => {
   const [coordinateData] = useState<EmbeddingSpec[]>(data);
   const [projectionTechnique, setProjectionTechnique] =
@@ -102,7 +106,6 @@ const DimReduction: React.FC<DimReductionProps> = ({
       displayPortDim.height - PADDING,
       PADDING,
     ]);
-    const colorScale = d3.scaleOrdinal(d3.schemeTableau10);
 
     // Create circles with combined hover effects
     g.selectAll("circle")
@@ -112,17 +115,24 @@ const DimReduction: React.FC<DimReductionProps> = ({
       .attr("cx", (d) => xScale(d[projectionTechnique][0]))
       .attr("cy", (d) => yScale(d[projectionTechnique][1]))
       .attr("r", (d: any) => {
-        return searchId === d.id.toString() ? RADIUS * 2 : RADIUS;
+        return searchId === d.id.toString() || d.id.toString() === selectedId
+          ? RADIUS * 2
+          : RADIUS;
       })
       .attr("fill", (d) => {
-        return searchId === d.id.toString() ? "grey" :
-        colorScale(d.category.toString())
-  })
+        if (selectedId === d.id.toString())
+          console.log("cate:", d.category.toString());
+        return searchId === d.id.toString()
+          ? "grey"
+          : selectedId === d.id.toString() ? "#9c755f" : colorScale(d.category.toString());
+      })
       .attr("opacity", (d) => {
         if (isAll === false) {
           return contentLookup[d.id].award !== "" ? 0.8 : 0.1;
         }
-        return searchId === d.id.toString() ? 1 : 0.2;
+        return searchId === d.id.toString() || d.id.toString() === selectedId
+          ? 1
+          : 0.2;
       })
       .style("cursor", "pointer")
       .on("click", function (event: MouseEvent, d: EmbeddingSpec) {
@@ -182,6 +192,7 @@ const DimReduction: React.FC<DimReductionProps> = ({
     projectionTechnique,
     isAll,
     searchId,
+    selectedId,
     contentLookup,
     setClicked,
   ]);
@@ -202,7 +213,7 @@ const DimReduction: React.FC<DimReductionProps> = ({
     const zoomBehavior = zoomRef.current.on("zoom", zoomHandler);
     svg.call(zoomBehavior);
 
-    console.log(zoomRef.current)
+    console.log(zoomRef.current);
 
     // Cleanup on unmount
     return () => {

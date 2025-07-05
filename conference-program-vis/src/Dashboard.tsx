@@ -19,6 +19,7 @@ import {
   useEmbedding,
   useRelationshipLookup,
 } from "./store";
+import * as d3 from "d3";
 import SearchBar from "./components/SearchBar";
 import DimReduction from "./components/DimReduction";
 import PaperContent from "./components/PaperContent";
@@ -102,6 +103,10 @@ const Dashboard: React.FC = () => {
     loadMsgPackData("/chi2025papers/embedMap.msgpack", setEmbedding);
   }, []);
 
+  console.log(embedding && embedding[0])
+  const colorScale = d3.scaleOrdinal(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"], [
+    "#4e79a7", "#f28e2c", "#e15759", "#76b7b2", "#59a14f", "#edc949", "#af7aa1", "#ff9da7", "#9c755f", "#bab0ab"
+  ]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const WRAP_THRESHOLD = 1000;
@@ -128,11 +133,8 @@ const Dashboard: React.FC = () => {
     }
   }, [searchId, contentLookup]);
 
-  const [view, setView] = useState<string>("circular");
+  const [cardBg, setCardBg] = useState<string>("#ffffff35");
 
-  const onChangeView = (key: string) => {
-    setView(key);
-  };
 
   const TabItems: TabsProps["items"] = [
     {
@@ -155,7 +157,7 @@ const Dashboard: React.FC = () => {
             <div
               style={{
                 width: fullWindowDim.width < WRAP_THRESHOLD ? "100%" : "25%",
-                maxHeight: "60vh",
+                maxHeight: "40vh",
                 justifyContent: "center",
                 alignItems: "center",
               }}
@@ -196,7 +198,10 @@ const Dashboard: React.FC = () => {
                     contentLookup={contentLookup}
                     setClicked={setSelectedId}
                     searchId={searchId}
+                    selectedId={selectedId}
                     trigger={displayPortDim.width}
+                    setBgColor={setCardBg}
+                    colorScale={colorScale}
                   />
                 )
               )}
@@ -205,10 +210,10 @@ const Dashboard: React.FC = () => {
               style={{
                 width: fullWindowDim.width < WRAP_THRESHOLD ? "100%" : "40%",
                 overflowY: "scroll",
-                height: "60vh",
+                height: "40vh",
               }}
             >
-              <Card title="Star Paper" style={{ backgroundColor: "#f0f0f0" }}>
+              <Card title="Star Paper" style={{ backgroundColor: "#f0f0f035" }}>
                 <PaperContent
                   paperId={searchId}
                   contentLookup={contentLookup}
@@ -222,10 +227,13 @@ const Dashboard: React.FC = () => {
               style={{
                 width: fullWindowDim.width < WRAP_THRESHOLD ? "100%" : "40%",
                 overflowY: "scroll",
-                height: "60vh",
+                height: "40vh",
               }}
             >
-              <Card title="Companion Star Paper">
+              <Card
+                title="Companion Star Paper"
+                style={{ backgroundColor: "#9c755f1e" }}
+              >
                 {selectedId !== "" ? (
                   <PaperContent
                     paperId={selectedId}
@@ -265,8 +273,10 @@ const Dashboard: React.FC = () => {
               data={embedding}
               contentLookup={contentLookup}
               searchId={searchId}
+              selectedId={selectedId}
               setClicked={setSearchId}
               trigger={displayPortDim.width}
+              colorScale={colorScale}
             />
           </div>
         )}

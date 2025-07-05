@@ -25,8 +25,11 @@ const CircularSOM: React.FC<CircularSOMProps> = ({
   data,
   contentLookup,
   searchId,
+  selectedId,
   setClicked,
-  trigger
+  setBgColor,
+  trigger,
+  colorScale
 }) => {
   const [coordinateData, setCoordinateData] = useState<RelationshipSpec[]>(
     data.relationship
@@ -92,7 +95,6 @@ const CircularSOM: React.FC<CircularSOMProps> = ({
     ];
     const xScale = d3.scaleLinear(xRange, [PADDING, displayPortDim - PADDING]);
     const yScale = d3.scaleLinear(yRange, [displayPortDim - PADDING, PADDING]);
-    const colorScale = d3.scaleOrdinal(d3.schemeTableau10);
     const relevanceRange = d3.extent(displayData, (d) => {
       if (d.relevance != 1) return d.relevance;
     }) as [number, number];
@@ -108,11 +110,18 @@ const CircularSOM: React.FC<CircularSOMProps> = ({
       .attr("cy", (d) => yScale(d.circularPos[1]))
       .attr("r", RADIUS)
       .attr("fill", (d) => {
+        if (d.id.toString() === selectedId) {
+          console.log("cate:", d.category.toString());
+        }
         if (d.id.toString() === searchId) {
           return "grey"
-        } else {
+        } else if (d.id.toString() === selectedId) {
+          return "#9c755f";
+        } 
+        else {
           return colorScale(d.category.toString())
-        }
+
+        } 
       })
       .style("opacity", (d) => opacityScale(d.relevance))
       .style("transform-origin", function (d) {
@@ -120,6 +129,7 @@ const CircularSOM: React.FC<CircularSOMProps> = ({
       })
       .on("click", (_, d) => {
         setClicked(d.id.toString());
+        setBgColor(colorScale(d.category.toString()));
       })
       .on("mouseover", function (event: MouseEvent, d: RelationshipSpec) {
         d3.select(".tooltip").remove();
@@ -199,14 +209,17 @@ const CircularSOM: React.FC<CircularSOMProps> = ({
         d3.select(this)
           .transition()
           .duration(200)
-          .style("transform", "scale(1)")
-          .style("opacity", opacityScale(d.relevance));
+          .style(
+            "transform",
+            d.id.toString() === selectedId ? "scale(1.1)" : "scale(1)"
+          )
+          .style("opacity", d.id.toString() === selectedId ? 1 : opacityScale(d.relevance));
         d3.select(".tooltip").remove();
       });
 
     // default title
     // circles.append("title").text((d) => d.metadata.title);
-  }, [coordinateData, topK, displayPortDim, RADIUS]);
+  }, [coordinateData, topK, displayPortDim, RADIUS, selectedId]);
 
   const getAbsolutePosition = (svgRect: DOMRect, x: number, y: number) => {
     const scrollX = window.scrollX || document.documentElement.scrollLeft;

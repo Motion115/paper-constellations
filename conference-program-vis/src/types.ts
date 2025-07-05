@@ -57,8 +57,11 @@ export interface CircularSOMProps {
   data: SomSpec;
   contentLookup: ContentLookupSpec;
   searchId: string;
+  selectedId: string;
   setClicked: React.Dispatch<React.SetStateAction<string>>;
+  setBgColor: React.Dispatch<React.SetStateAction<string>>;
   trigger: number;
+  colorScale: d3.ScaleOrdinal<string, string, never>;
 }
 
 export interface DimReductionProps {

@@ -13,9 +13,9 @@ const App: React.FC = () => {
     <>
       <ConfigProvider theme={THEME}>
         <div>
-          <Header style={{ padding: "0% 2% 0% 2%" }}>
+          {/* <Header style={{ padding: "0% 2% 0% 2%" }}>
             <Title level={3}>Paper Constellations</Title>
-          </Header>
+          </Header> */}
           <Content style={CSSPageConfig}>
             <Dashboard />
           </Content>
