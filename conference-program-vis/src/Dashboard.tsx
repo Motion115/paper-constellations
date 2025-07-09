@@ -12,7 +12,7 @@ import {
   Typography,
 } from "antd";
 import { decode } from "@msgpack/msgpack";
-import { ContentSpec } from "./types";
+import { ContentSpec, SomSpec } from "./types";
 import {
   useAuthorLookup,
   useContentLookup,
@@ -56,10 +56,9 @@ const Dashboard: React.FC = () => {
     appendRelationshipLookup,
   } = useRelationshipLookup();
   const { embedding, setEmbedding } = useEmbedding();
-
-  const [searchId, setSearchId] = useState<string>("188659");
+  // 188659
+  const [searchId, setSearchId] = useState<string>("");
   const [selectedId, setSelectedId] = useState<string>("");
-  const [selectedScatterId, setSelectedScatterId] = useState<string>("");
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
 
   const [displayPortDim, setDisplayPortDim] = useState<{
@@ -90,23 +89,41 @@ const Dashboard: React.FC = () => {
   }, [somRef.current]);
 
   useEffect(() => {
-    console.log("displayPortDim updated:", displayPortDim);
+    // console.log("displayPortDim updated:", displayPortDim);
   }, [displayPortDim]);
 
   useEffect(() => {
     setSelectedId("");
+    setCardBg("#ffffff");
   }, [searchId]);
 
   useEffect(() => {
-    loadMsgPackData("/chi2025papers/content_lookup.msgpack", setContentLookup);
-    loadMsgPackData("/chi2025papers/people_lookup.msgpack", setAuthorLookup);
-    loadMsgPackData("/chi2025papers/embedMap.msgpack", setEmbedding);
+    loadMsgPackData(
+      "/paper-constellations/content_lookup.msgpack",
+      setContentLookup
+    );
+    loadMsgPackData(
+      "/paper-constellations/people_lookup.msgpack",
+      setAuthorLookup
+    );
+    loadMsgPackData("/paper-constellations/embedMap.msgpack", setEmbedding);
   }, []);
 
-  console.log(embedding && embedding[0])
-  const colorScale = d3.scaleOrdinal(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"], [
-    "#4e79a7", "#f28e2c", "#e15759", "#76b7b2", "#59a14f", "#edc949", "#af7aa1", "#ff9da7", "#9c755f", "#bab0ab"
-  ]);
+  const colorScale = d3.scaleOrdinal(
+    ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+    [
+      "#4e79a7",
+      "#f28e2c",
+      "#e15759",
+      "#76b7b2",
+      "#59a14f",
+      "#edc949",
+      "#af7aa1",
+      "#ff9da7",
+      "#9c755f",
+      "#bab0ab",
+    ]
+  );
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const WRAP_THRESHOLD = 1000;
@@ -120,7 +137,7 @@ const Dashboard: React.FC = () => {
       if (!searchHistory.includes(searchId)) {
         setSearchHistory([...searchHistory, searchId]);
         loadMsgPackData(
-          `/chi2025papers/shards/content_${loadId}.msgpack`,
+          `/paper-constellations/shards/content_${loadId}.msgpack`,
           appendRelationshipLookup
         ).then((response) => {
           setIsLoading(false);
@@ -135,22 +152,9 @@ const Dashboard: React.FC = () => {
 
   const [cardBg, setCardBg] = useState<string>("#ffffff35");
 
-
-  const TabItems: TabsProps["items"] = [
-    {
-      key: "circular",
-      label: "Query Retrieval View",
-    },
-    {
-      key: "scatter",
-      label: "Scatter Plot Dimensionality Reduction View",
-    },
-  ];
-
   const CircularView = (
     <>
-      {relationshipLookup &&
-        contentLookup &&
+      { contentLookup &&
         authorLookup &&
         fullWindowDim !== null && (
           <Flex gap="large" wrap={fullWindowDim.width < WRAP_THRESHOLD}>
@@ -163,54 +167,28 @@ const Dashboard: React.FC = () => {
               }}
               ref={somRef}
             >
-              {isLoading ? (
-                <div>
-                  <Spin
-                    tip={
-                      <>
-                        <Paragraph>Loading SOM projection...</Paragraph>
-                        <Paragraph>
-                          SOM projection only exsist on Papers, Journals, LBW,
-                          Student Research Competition, alt.CHI and Case Studies
-                        </Paragraph>
-                      </>
-                    }
-                  >
-                    <Skeleton.Node
-                      active
-                      style={{
-                        width: displayPortDim.width,
-                        height: displayPortDim.height,
-                      }}
-                    />
-                  </Spin>
-                </div>
-              ) : (
-                relationshipLookup &&
-                contentLookup &&
-                authorLookup && (
-                  <CircularSOM
-                    data={
-                      relationshipLookup.find(
-                        (item) => item.id.toString() === searchId
-                      ) || relationshipLookup[0]
-                    }
-                    contentLookup={contentLookup}
-                    setClicked={setSelectedId}
-                    searchId={searchId}
-                    selectedId={selectedId}
-                    trigger={displayPortDim.width}
-                    setBgColor={setCardBg}
-                    colorScale={colorScale}
-                  />
-                )
+              {relationshipLookup && contentLookup && authorLookup && (
+                <CircularSOM
+                  data={
+                    relationshipLookup.find(
+                      (item) => item.id.toString() === searchId
+                    ) || ({ id: -1, relationship: [] } as SomSpec)
+                  }
+                  contentLookup={contentLookup}
+                  setClicked={setSelectedId}
+                  searchId={searchId}
+                  selectedId={selectedId}
+                  trigger={displayPortDim.width}
+                  setBgColor={setCardBg}
+                  colorScale={colorScale}
+                />
               )}
             </div>
             <div
               style={{
                 width: fullWindowDim.width < WRAP_THRESHOLD ? "100%" : "40%",
                 overflowY: "scroll",
-                height: "40vh",
+                maxHeight: "40vh",
               }}
             >
               <Card title="Star Paper" style={{ backgroundColor: "#f0f0f035" }}>
@@ -227,27 +205,19 @@ const Dashboard: React.FC = () => {
               style={{
                 width: fullWindowDim.width < WRAP_THRESHOLD ? "100%" : "40%",
                 overflowY: "scroll",
-                height: "40vh",
+                maxHeight: "40vh",
               }}
             >
               <Card
                 title="Companion Star Paper"
-                style={{ backgroundColor: "#9c755f1e" }}
+                style={{ backgroundColor: cardBg + "10" }}
               >
-                {selectedId !== "" ? (
-                  <PaperContent
-                    paperId={selectedId}
-                    contentLookup={contentLookup}
-                    authorLookup={authorLookup}
-                    trigger={displayPortDim.width}
-                  />
-                ) : (
-                  <Alert
-                    message="Select a paper from the visualization to view its details here"
-                    type="info"
-                    showIcon
-                  />
-                )}
+                <PaperContent
+                  paperId={selectedId}
+                  contentLookup={contentLookup}
+                  authorLookup={authorLookup}
+                  trigger={displayPortDim.width}
+                />
               </Card>
             </div>
           </Flex>
@@ -258,9 +228,9 @@ const Dashboard: React.FC = () => {
   const ScatterView = (
     <>
       <Space direction="vertical" style={{ width: "100%" }}>
-        <Text style={{ fontWeight: "bold", fontSize: "18px" }}>
+        {/* <Text style={{ fontWeight: "bold", fontSize: "18px" }}>
           Constellations
-        </Text>
+        </Text> */}
         {embedding && contentLookup && fullWindowDim !== null && (
           <div
             style={{
@@ -277,6 +247,7 @@ const Dashboard: React.FC = () => {
               setClicked={setSearchId}
               trigger={displayPortDim.width}
               colorScale={colorScale}
+              selectedColor={cardBg}
             />
           </div>
         )}
@@ -295,8 +266,8 @@ const Dashboard: React.FC = () => {
   return (
     <div ref={fullWindowRef}>
       <Space direction="vertical" style={CSSPageConfig}>
-        {searchBar}
         {ScatterView}
+        {searchBar}
         {CircularView}
 
         {/* <Tabs items={TabItems} onChange={onChangeView} activeKey={view} />

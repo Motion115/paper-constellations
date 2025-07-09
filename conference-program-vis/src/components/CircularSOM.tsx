@@ -115,9 +115,7 @@ const CircularSOM: React.FC<CircularSOMProps> = ({
         }
         if (d.id.toString() === searchId) {
           return "grey"
-        } else if (d.id.toString() === selectedId) {
-          return "#9c755f";
-        } 
+        }
         else {
           return colorScale(d.category.toString())
 
@@ -219,7 +217,7 @@ const CircularSOM: React.FC<CircularSOMProps> = ({
 
     // default title
     // circles.append("title").text((d) => d.metadata.title);
-  }, [coordinateData, topK, displayPortDim, RADIUS, selectedId]);
+  }, [coordinateData, topK, displayPortDim, RADIUS, selectedId, searchId]);
 
   const getAbsolutePosition = (svgRect: DOMRect, x: number, y: number) => {
     const scrollX = window.scrollX || document.documentElement.scrollLeft;
@@ -271,7 +269,10 @@ const CircularSOM: React.FC<CircularSOMProps> = ({
           <Spin
             tip={
               <>
-                <Paragraph>Loading SOM projection...</Paragraph>
+                <Paragraph>
+                  Please select an Star Paper in the Constellation or the drop
+                  down...
+                </Paragraph>
                 <Paragraph>
                   SOM projection only exsist on Papers, Journals, LBW, Student
                   Research Competition, alt.CHI and Case Studies

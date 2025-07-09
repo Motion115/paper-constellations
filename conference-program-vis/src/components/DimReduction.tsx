@@ -19,6 +19,7 @@ interface DimReductionProps {
   selectedId: string;
   setClicked: (id: string) => void;
   colorScale: d3.ScaleOrdinal<string, string, never>;
+  selectedColor: string;
   trigger?: any;
 }
 
@@ -33,6 +34,7 @@ const DimReduction: React.FC<DimReductionProps> = ({
   selectedId,
   setClicked,
   colorScale,
+  selectedColor,
 }) => {
   const [coordinateData] = useState<EmbeddingSpec[]>(data);
   const [projectionTechnique, setProjectionTechnique] =
@@ -66,7 +68,8 @@ const DimReduction: React.FC<DimReductionProps> = ({
         const infoRect = infoRef.current.getBoundingClientRect();
         setDisplayPortDim({
           width: rect.width,
-          height: rect.height - infoRect.height,
+          // height: rect.height - infoRect.height,
+          height: rect.height,
         });
         setRADIUS(Math.min(rect.width, rect.height) / 100);
       }
@@ -120,11 +123,14 @@ const DimReduction: React.FC<DimReductionProps> = ({
           : RADIUS;
       })
       .attr("fill", (d) => {
-        if (selectedId === d.id.toString())
-          console.log("cate:", d.category.toString());
-        return searchId === d.id.toString()
-          ? "grey"
-          : selectedId === d.id.toString() ? "#9c755f" : colorScale(d.category.toString());
+        if (searchId === "") return colorScale(d.category.toString());
+        else {
+          return searchId === d.id.toString()
+            ? "grey"
+            : selectedId === d.id.toString()
+            ? selectedColor
+            : "grey";
+        }
       })
       .attr("opacity", (d) => {
         if (isAll === false) {
@@ -136,7 +142,11 @@ const DimReduction: React.FC<DimReductionProps> = ({
       })
       .style("cursor", "pointer")
       .on("click", function (event: MouseEvent, d: EmbeddingSpec) {
-        setClicked(d.id.toString());
+        if (searchId === d.id.toString()) {
+          setClicked("");
+        } else {
+          setClicked(d.id.toString());
+        }
       })
       .on("mouseover", function (event: MouseEvent, d: EmbeddingSpec) {
         d3.select(".tooltip").remove();
@@ -175,13 +185,16 @@ const DimReduction: React.FC<DimReductionProps> = ({
           .transition()
           .duration(200)
           .attr("r", (d: any) => {
-            return searchId === d.id.toString() ? RADIUS * 2 : RADIUS;
+            return searchId === d.id.toString() || selectedId === d.id.toString() ? RADIUS * 2 : RADIUS;
           })
           .style("opacity", (d: any) => {
             if (isAll === false) {
               return contentLookup[d.id].award !== "" ? 0.8 : 0.1;
             }
-            return searchId === d.id.toString() ? 1 : 0.2;
+            return searchId === d.id.toString() ||
+              selectedId === d.id.toString()
+              ? 1
+              : 0.2;
           });
         d3.select(".tooltip").remove();
       });
@@ -245,9 +258,26 @@ const DimReduction: React.FC<DimReductionProps> = ({
       {data ? (
         <div
           ref={parentRef}
-          style={{ height: "100%", width: "100%", overflow: "hidden" }}
+          style={{
+            height: "100%",
+            width: "100%",
+            overflow: "hidden",
+            position: "relative", // Add this to make absolute positioning work
+          }}
         >
-          <div ref={infoRef} style={{ padding: "8px" }}>
+          {/* Add this wrapper div with absolute positioning */}
+          <div
+            ref={infoRef}
+            style={{
+              padding: "8px",
+              position: "absolute",
+              top: 0,
+              left: 0,
+              zIndex: 10, // Ensure it stays above the SVG
+              background: "rgba(255, 255, 255, 0.5)", // Semi-transparent background
+              borderRadius: "0 0 8px 0",
+            }}
+          >
             <Flex gap="middle" wrap>
               <Text style={{ fontWeight: "bold" }}>Projection algorithm:</Text>
               <Radio.Group
@@ -262,6 +292,9 @@ const DimReduction: React.FC<DimReductionProps> = ({
                 checkedChildren="On"
                 unCheckedChildren="Off"
               />
+              <Text style={{ fontSize: "12px" }}>
+                Scroll/pinch to zoom, drag to pan.
+              </Text>
             </Flex>
           </div>
           <svg

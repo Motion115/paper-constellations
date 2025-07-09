@@ -7,7 +7,7 @@ import {
 } from "../types";
 import { searchArxiv } from "../utils/arXivSearch";
 import AuthorsVis from "./Authors";
-import { Button, Flex, Layout, Space, Tag, Tooltip, Typography } from "antd";
+import { Alert, Button, Flex, Layout, Space, Tag, Tooltip, Typography } from "antd";
 import {
   CalendarOutlined,
   ExclamationCircleOutlined,
@@ -36,14 +36,47 @@ const PaperContent: React.FC<PaperVisProps> = ({
   paperId,
   contentLookup,
   authorLookup,
-  trigger
+  trigger,
 }) => {
-  const title = contentLookup[paperId].title;
-  const authors: AuthorSpec[] = contentLookup[paperId].authors.map(
-    (d: ShortAuthorsSpec) => {
-      return authorLookup[d.personId];
+  const [title, setTitle] = useState("");
+  const [authors, setAuthors] = useState<AuthorSpec[]>([]);
+
+  const [paperType, setPaperType] = useState("");
+  const [paperTypeColor, setPaperTypeColor] = useState("");
+  const [paperAward, setPaperAward] = useState("");
+  const [paperAwardColor, setPaperAwardColor] = useState("");
+  const [paperAbstract, setPaperAbstract] = useState("");
+
+  useEffect(() => {
+    if (paperId !== "") {
+      setTitle(contentLookup[paperId].title);
+      setAuthors(
+        contentLookup[paperId].authors.map((d: ShortAuthorsSpec) => {
+          return authorLookup[d.personId];
+        })
+      );
+      setPaperType(PaperTypeMap[contentLookup[paperId].trackId]);
+      setPaperTypeColor(PaperTypeColorMap[contentLookup[paperId].trackId]);
+      setPaperAward(
+        contentLookup[paperId].award === "BEST_PAPER"
+          ? "Best Paper"
+          : contentLookup[paperId].award === "HONORABLE_MENTION"
+          ? "Honorable Mention"
+          : ""
+      );
+      setPaperAwardColor(paperAward === "Best Paper" ? "gold" : "orange");
+      setPaperAbstract(contentLookup[paperId].abstract);
     }
-  );
+    else {
+      setTitle("");
+      setAuthors([]);
+      setPaperType("");
+      setPaperTypeColor("");
+      setPaperAward("");
+      setPaperAwardColor("");
+      setPaperAbstract("");
+    }
+  }, [paperId]);
 
   const [arXivStatus, setArXivStatus] = useState("");
   const [arXivInfo, setArXivInfo] = useState<{
@@ -53,18 +86,6 @@ const PaperContent: React.FC<PaperVisProps> = ({
     title: "",
     link: "",
   });
-
-  const paperType = PaperTypeMap[contentLookup[paperId].trackId];
-  const paperTypeColor = PaperTypeColorMap[contentLookup[paperId].trackId];
-
-  const paperAward =
-    contentLookup[paperId].award === "BEST_PAPER"
-      ? "Best Paper"
-      : contentLookup[paperId].award === "HONORABLE_MENTION"
-      ? "Honorable Mention"
-      : "";
-  const paperAwardColor = paperAward === "Best Paper" ? "gold" : "orange";
-
   useEffect(() => {
     setArXivStatus("");
   }, [paperId]);
@@ -135,8 +156,8 @@ const PaperContent: React.FC<PaperVisProps> = ({
     window.open(url, "_blank");
   };
 
-  return (
-    <Space direction="vertical" style={{width: "100%"}}>
+  return paperId !== "" ? (
+    <Space direction="vertical" style={{ width: "100%" }}>
       <Text style={{ fontSize: 20, fontWeight: "bold" }}>{title}</Text>
       <Flex gap="small" wrap>
         <Tag color={paperTypeColor}>{paperType}</Tag>
@@ -156,10 +177,16 @@ const PaperContent: React.FC<PaperVisProps> = ({
       </Text> */}
       <AuthorsVis authorList={authors} />
 
-      <Paragraph style={{ textAlign: "justify"}}>
-        <Text strong>Abstract:</Text> {contentLookup[paperId].abstract}
+      <Paragraph style={{ textAlign: "justify" }}>
+        <Text strong>Abstract:</Text> {paperAbstract}
       </Paragraph>
     </Space>
+  ) : (
+    <Alert
+      message="Select a paper from the visualization to view its details here"
+      type="info"
+      showIcon
+    />
   );
 };
 

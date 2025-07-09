@@ -27,10 +27,15 @@ const SearchBar: React.FC<SearchBarProps> = ({
     })
   );
   const [defaultValue, setDefaultValue] = useState<string>(
-    data[searchId].title
+    ""
   );
   useEffect(() => {
-    setDefaultValue(data[searchId].title || "")
+    if (searchId !== "") {
+      setDefaultValue(data[searchId].title);
+    }
+    else {
+      setDefaultValue("");
+    }
   }, [searchId])
 
 
@@ -44,8 +49,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
   // };
 
   return (
-    <Flex wrap>
-      <Text style={{ fontWeight: "bold" }}>Anchor paper: </Text>
+    <Flex wrap gap="large">
+      <Text style={{ fontWeight: "bold" }}>Star paper: </Text>
       <Select
         showSearch
         placeholder="Search content"
@@ -55,7 +60,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         filterOption={(input, option) =>
           (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
         }
-        style={{ width: "100%", height: "3rem" }}
+        style={{ height: "2rem", flex: "1" }}
         options={searchList}
         value={defaultValue}
       />
